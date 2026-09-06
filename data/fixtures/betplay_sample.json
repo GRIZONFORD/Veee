@@ -1,0 +1,26 @@
+[
+  {
+    "equipo_local": "FC Barcelona",
+    "equipo_visitante": "Girona FC",
+    "fecha_evento": "2026-09-12T19:00:00+00:00",
+    "offers": [
+      {"criterion": "Resultado 1X2",
+       "outcomes": [{"label": "1", "odds": 1.45}, {"label": "X", "odds": 4.80}, {"label": "2", "odds": 6.50}]},
+      {"criterion": "Total de saques de esquina 9.5",
+       "outcomes": [{"label": "Mas de", "odds": 1.92, "line": 9.5}, {"label": "Menos de", "odds": 1.88, "line": 9.5}]},
+      {"criterion": "Total de tarjetas 4.5",
+       "outcomes": [{"label": "Mas de", "odds": 2.05, "line": 4.5}, {"label": "Menos de", "odds": 1.75, "line": 4.5}]}
+    ]
+  },
+  {
+    "equipo_local": "Atletico de Madrid",
+    "equipo_visitante": "Real Sociedad",
+    "fecha_evento": "2026-09-12T21:00:00+00:00",
+    "offers": [
+      {"criterion": "Total de saques de esquina 10.5",
+       "outcomes": [{"label": "Mas de", "odds": 2.10, "line": 10.5}, {"label": "Menos de", "odds": 1.72, "line": 10.5}]},
+      {"criterion": "Handicap asiatico -0.5",
+       "outcomes": [{"label": "1", "odds": 1.85, "line": -0.5}, {"label": "2", "odds": 1.95, "line": -0.5}]}
+    ]
+  }
+]

@@ -1,0 +1,77 @@
+# =============================================================================
+# Configuracion del estudio. Copiar a config/config.yaml y calibrar.
+# NOTA: los endpoints y selectores son PLANTILLAS. Deben verificarse contra el
+# sitio en vivo (y contra sus Terminos de Servicio) antes de la recoleccion.
+# =============================================================================
+
+estudio:
+  temporada: "2025-2026"
+  liga: "LaLiga"
+  stake: 1.0                 # stake plano en unidades
+  alpha: 0.05
+
+storage:
+  db_path: "data/veee.db"
+  log_dir: "outputs/decisiones"
+
+# --------------------------------------------------------------- modelo -----
+# Hiperparametros CONGELADOS ex-ante (ver docs/PREREGISTRO.md).
+model:
+  k_shrink: 12.0             # encogimiento de la tendencia hacia el mercado
+  w_trend: 0.5
+  w_count: 0.5
+  devig_method: "shin"       # proportional | additive | power | shin
+  ev_min: 0.03               # umbral de EV (absorbe el error de estimacion)
+  trend_z_min: 1.0
+  odds_min: 1.40
+  odds_max: 6.00
+  max_bets_per_match: 2
+
+# -------------------------------------------------------------- BetPlay -----
+betplay:
+  liga: "LaLiga"
+  mode: "api"                # api | html
+  rate_limit_s: 2.5
+  respect_robots: true
+  api_url: "https://ENDPOINT.A.CALIBRAR/offering/v2018/betplay/listView/football/spain/laliga.json"
+  api_params:
+    lang: "es_CO"
+    market: "CO"
+    includeParticipants: true
+  json_paths:                # rutas de aplanado del JSON
+    events: "events"
+    home: "event.homeName"
+    away: "event.awayName"
+    start: "event.start"
+    offers: "betOffers"
+  html_url: "https://betplay.com.co/apuestas"
+  selectors:                 # solo para mode: html
+    event_card: "div[data-test='event-card']"
+    team: "span[data-test='participant-name']"
+    start_time: "time"
+    offer_row: "div[data-test='bet-offer']"
+    criterion: "span[data-test='criterion-label']"
+    outcome_label: "span[data-test='outcome-label']"
+    outcome_odds: "span[data-test='outcome-odds']"
+
+# ------------------------------------------------------------- Linemate -----
+linemate:
+  liga: "LaLiga"
+  mode: "api"
+  rate_limit_s: 2.5
+  respect_robots: true
+  api_url: "https://ENDPOINT.A.CALIBRAR/api/trends"
+  api_params:
+    league: "la-liga"
+  json_root: "trends"
+  html_url: "https://linemate.io/soccer/trends"
+  selectors:
+    trend_card: "div.trend-card"
+    team: "span.team-name"
+    market: "span.market-label"
+    trend_item: "li.trend-item"
+
+# ------------------------------------ modo offline para pruebas y --dry-run --
+fixtures:
+  betplay: "data/fixtures/betplay_sample.json"
+  linemate: "data/fixtures/linemate_sample.json"

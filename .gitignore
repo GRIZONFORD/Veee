@@ -1,0 +1,23 @@
+# Datos y credenciales
+.env
+*.db
+*.sqlite
+*.sqlite3
+data/raw/
+data/processed/
+data/*.csv
+!data/fixtures/*.json
+outputs/
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+.pytest_cache/
+*.egg-info/
+# Sistema
+.DS_Store
+
+# Configuracion local (usar config.example.yaml como plantilla)
+config/config.yaml

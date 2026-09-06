@@ -1,0 +1,14 @@
+[
+  {"equipo_local": "FC Barcelona", "equipo_visitante": "Girona FC",
+   "fecha_evento": "2026-09-12T19:00:00+00:00", "mercado_raw": "Corners",
+   "texto": "Over 9.5 corners in 8 of last 10", "linea": 9.5,
+   "media_reciente": 10.9, "varianza_reciente": 15.2},
+  {"equipo_local": "FC Barcelona", "equipo_visitante": "Girona FC",
+   "fecha_evento": "2026-09-12T19:00:00+00:00", "mercado_raw": "Cards",
+   "texto": "Over 4.5 cards in 7 of last 10", "linea": 4.5,
+   "media_reciente": 5.3, "varianza_reciente": 6.9},
+  {"equipo_local": "Atletico de Madrid", "equipo_visitante": "Real Sociedad",
+   "fecha_evento": "2026-09-12T21:00:00+00:00", "mercado_raw": "Corners",
+   "texto": "Over 10.5 corners in 6 of last 10", "linea": 10.5,
+   "media_reciente": 11.1, "varianza_reciente": 16.4}
+]
