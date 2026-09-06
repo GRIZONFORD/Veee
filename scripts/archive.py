@@ -32,7 +32,8 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from veee.archive import (LIGAS, coverage_report, etiqueta_temporada,  # noqa: E402
-                          descargar, load_many, load_season, resumen_muestra)
+                          descargar, load_many, load_season, probar_conexion,
+                          resumen_muestra)
 from veee.archive_analysis import (a1_sesgo_favorito_longshot,  # noqa: E402
                                    a2_asimetria_entre_casas, a3_clv_por_casa,
                                    a5_evolucion_por_temporada, build_matrix,
@@ -57,18 +58,60 @@ def cmd_fetch(a) -> int:
         print(f"Codigos de liga desconocidos: {desconocidas}")
         print(f"Disponibles: {', '.join(sorted(LIGAS))}")
         return 1
+
+    n_total = (a.hasta - a.desde + 1) * len(divs)
+    if not a.sin_preflight:
+        print(f"Probando conectividad con football-data.co.uk antes de "
+              f"descargar {n_total} ficheros...")
+        ok_conn, detalle = probar_conexion(cache_dir=a.cache, timeout=a.timeout)
+        if not ok_conn:
+            print(f"\n  [FALLO] {detalle}\n")
+            print("No se puede llegar a www.football-data.co.uk. Antes de repetir")
+            print("un barrido largo, aisle la causa fuera de Python:")
+            print()
+            print("  1. Abra en el navegador (prueba mas simple y concluyente):")
+            print("     https://www.football-data.co.uk/mmz4281/2425/E0.csv")
+            print("     - Si SI descarga en el navegador pero falla aqui, algo del")
+            print("       propio proceso Python esta bloqueado (antivirus/EDR) o")
+            print("       necesita el proxy corporativo que el navegador ya usa.")
+            print("     - Si TAMPOCO descarga en el navegador, el bloqueo es de")
+            print("       red (firewall, ISP, o el sitio esta caido), no del script.")
+            print()
+            print("  2. En PowerShell, para separar DNS de la conexion TCP:")
+            print("     Test-NetConnection www.football-data.co.uk -Port 443")
+            print()
+            print("  3. Si hay VPN o red corporativa/universitaria, pruebe")
+            print("     desactivandola o desde otra red (p. ej. datos moviles).")
+            print()
+            print("  4. Un WinError 10060 (tiempo agotado, sin respuesta) en Windows")
+            print("     a veces se debe a una ruta IPv6 rota que cuelga antes de")
+            print("     caer a IPv4. Pruebe deshabilitando IPv6 en el adaptador de")
+            print("     red, o fuerce IPv4 en su cliente VPN si usa uno.")
+            print()
+            print("Repita 'fetch' cuando el paso 1 o 2 confirmen conectividad. Para")
+            print("omitir esta comprobacion: --sin-preflight")
+            return 1
+        print(f"  [OK] {detalle}\n")
+
     ok = fallos = 0
-    for anio in range(a.desde, a.hasta + 1):
-        for div in divs:
-            try:
-                ruta = descargar(div, anio, cache_dir=a.cache, forzar=a.forzar)
-                print(f"  [OK]    {div} {etiqueta_temporada(anio)} -> {ruta}")
-                ok += 1
-            except Exception as exc:                     # noqa: BLE001
-                # Que falte una combinacion liga-temporada es normal (ascensos,
-                # cambios de cobertura). Se registra y se sigue.
-                print(f"  [FALLO] {div} {etiqueta_temporada(anio)}: {exc}")
-                fallos += 1
+    try:
+        for anio in range(a.desde, a.hasta + 1):
+            for div in divs:
+                try:
+                    ruta = descargar(div, anio, cache_dir=a.cache, forzar=a.forzar,
+                                     timeout=a.timeout, max_retries=a.retries)
+                    print(f"  [OK]    {div} {etiqueta_temporada(anio)} -> {ruta}")
+                    ok += 1
+                except Exception as exc:                 # noqa: BLE001
+                    # Que falte una combinacion liga-temporada es normal
+                    # (ascensos, cambios de cobertura). Se registra y se sigue.
+                    print(f"  [FALLO] {div} {etiqueta_temporada(anio)}: {exc}")
+                    fallos += 1
+    except KeyboardInterrupt:
+        print(f"\nInterrumpido por el usuario tras {ok} descargas ({fallos} fallidas).")
+        print("Los ficheros ya descargados quedan en cache: relance 'fetch' para")
+        print("continuar donde quedo (no repite lo que ya existe en disco).")
+        return 130
     print(f"\nDescargados {ok}, fallidos {fallos}.")
     return 0 if ok else 1
 
@@ -217,6 +260,12 @@ def main() -> int:
     f = sub.add_parser("fetch", help="Descarga los CSV al cache local.")
     comunes(f, con_red=False)
     f.add_argument("--forzar", action="store_true")
+    f.add_argument("--timeout", type=int, default=10,
+                   help="Segundos antes de dar por fallida una conexion (def. 10).")
+    f.add_argument("--retries", type=int, default=2,
+                   help="Reintentos por fichero antes de saltarlo (def. 2).")
+    f.add_argument("--sin-preflight", action="store_true",
+                   help="Omite la prueba de conectividad previa al barrido.")
     f.set_defaults(func=cmd_fetch)
 
     r = sub.add_parser("report", help="Informe de cobertura y verificacion de esquema.")

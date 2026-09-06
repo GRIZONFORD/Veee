@@ -442,18 +442,27 @@ def url_temporada(div: str, anio_inicio: int) -> str:
 
 
 def descargar(div: str, anio_inicio: int, cache_dir: str | Path = "data/archive",
-              session: Any = None, forzar: bool = False) -> Path:
+              session: Any = None, forzar: bool = False,
+              timeout: int = 10, max_retries: int = 2) -> Path:
     """Descarga un CSV al cache local. No vuelve a pedirlo si ya existe.
 
     El archivo historico es inmutable salvo para la temporada en curso, de modo
     que cachear es correcto ademas de cortes con el servidor.
+
+    `timeout`/`max_retries` se mantienen bajos por defecto (10s x 2 intentos, en
+    vez de los 20s x 4 de `PoliteSession`) porque este es un flujo INTERACTIVO:
+    si el host esta inalcanzable, el usuario debe verlo en segundos, no despues
+    de que un barrido de 50 ficheros agote minutos por fichero antes de fallar.
+    Se ignoran si se pasa `session` ya construida (queda bajo su propia
+    configuracion, pensada para reutilizarse entre llamadas).
     """
     destino = Path(cache_dir) / codigo_temporada(anio_inicio) / f"{div}.csv"
     if destino.exists() and not forzar:
         log.debug("Cache: %s", destino)
         return destino
     from .scrapers.base import PoliteSession
-    session = session or PoliteSession(rate_limit_s=1.5, cache_dir=cache_dir)
+    session = session or PoliteSession(rate_limit_s=1.5, cache_dir=cache_dir,
+                                       timeout=timeout, max_retries=max_retries)
     r = session.get(url_temporada(div, anio_inicio), cache=False)
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_bytes(r.content)
@@ -461,15 +470,43 @@ def descargar(div: str, anio_inicio: int, cache_dir: str | Path = "data/archive"
     return destino
 
 
+def probar_conexion(cache_dir: str | Path = "data/archive", timeout: int = 8,
+                    max_retries: int = 1) -> tuple[bool, str]:
+    """Prueba de humo: un unico fichero pequeno y conocido, con fallo rapido.
+
+    Pensada para ejecutarse ANTES de un barrido de decenas de ficheros: si el
+    host esta inalcanzable (firewall, DNS, ISP), lo dice en unos pocos segundos
+    en vez de descubrirse tras minutos de reintentos silenciosos.
+    """
+    from .scrapers.base import PoliteSession
+    sesion = PoliteSession(rate_limit_s=0, cache_dir=cache_dir,
+                           timeout=timeout, max_retries=max_retries)
+    url = url_temporada("E0", 2023)          # Premier League, temporada estable
+    try:
+        r = sesion.get(url, cache=False)
+        return True, f"OK ({len(r.content):,} bytes) desde {url}"
+    except Exception as exc:                  # noqa: BLE001
+        return False, f"{type(exc).__name__}: {exc}"
+
+
 def load_many(divs: Iterable[str], anios: Iterable[int],
               cache_dir: str | Path = "data/archive",
-              descargar_si_falta: bool = True) -> list[TemporadaCargada]:
+              descargar_si_falta: bool = True,
+              timeout: int = 10, max_retries: int = 2) -> list[TemporadaCargada]:
     """Carga varias ligas y temporadas, omitiendo con aviso las no disponibles.
 
     Que falte una combinacion liga-temporada es normal (ascensos, cambios de
     cobertura del sitio). Se registra y se continua: abortar todo el barrido por
     un fichero ausente seria peor.
+
+    Se construye UNA sola sesion HTTP y se reutiliza en todas las descargas del
+    barrido: ademas de respetar mejor el `rate_limit_s` (una sesion nueva por
+    fichero perdia la cadencia entre llamadas), evita que cada fichero repita el
+    coste de conexion TLS desde cero.
     """
+    from .scrapers.base import PoliteSession
+    sesion = PoliteSession(rate_limit_s=1.5, cache_dir=cache_dir,
+                           timeout=timeout, max_retries=max_retries)
     salida: list[TemporadaCargada] = []
     for anio in anios:
         for div in divs:
@@ -479,7 +516,7 @@ def load_many(divs: Iterable[str], anios: Iterable[int],
                     if not descargar_si_falta:
                         log.warning("Ausente y sin descarga: %s %s", div, anio)
                         continue
-                    ruta = descargar(div, anio, cache_dir)
+                    ruta = descargar(div, anio, cache_dir, session=sesion)
                 salida.append(load_season(ruta, div, etiqueta_temporada(anio)))
             except Exception as exc:                       # noqa: BLE001
                 log.warning("Omitido %s %s: %s", div, etiqueta_temporada(anio), exc)
