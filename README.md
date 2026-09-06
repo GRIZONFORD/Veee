@@ -18,6 +18,12 @@ cp config/config.example.yaml config/config.yaml   # y calibrar los selectores
 ## Uso
 
 ```bash
+# ARCHIVO HISTÓRICO (gratis, sin clave) — la columna vertebral del estudio
+python scripts/archive.py fetch --ligas SP1,E0,D1,I1,F1 --desde 2015 --hasta 2024
+python scripts/archive.py report        # VERIFICA el esquema antes de analizar
+python scripts/archive.py analyze       # preguntas A1-A5
+python scripts/archive.py report --fixtures   # sin red, sobre las dos épocas
+
 # 0) ANTES de capturar en vivo: calibrar y validar
 python scripts/calibrate.py verify --fuente betplay   # asistente de calibración
 python scripts/preflight.py                           # GO / NO-GO
@@ -41,8 +47,38 @@ python scripts/run_analysis.py --simular h1_ruido  # sobre datos sintéticos
 python scripts/power_study.py --rep 200
 
 # Pruebas
-python -m pytest tests/ -q                          # 83 pruebas
+python -m pytest tests/ -q                          # 114 pruebas
 ```
+
+## Archivo histórico (Football-Data.co.uk)
+
+Fuente gratuita y sin clave con cuotas de múltiples casas —**incluida
+Pinnacle**—, apertura y cierre, más córneres, tarjetas y tiros observados. Es la
+columna vertebral del estudio por una razón de potencia estadística: una
+temporada prospectiva (n≈760) solo detecta un ROI del 9 %; el archivo con 7 ligas
+× 10 temporadas baja el efecto mínimo detectable al **0,88 %**.
+
+**El módulo descubre el esquema, no lo supone.** Estos CSV no son estables entre
+temporadas: cambia el formato de fecha (`dd/mm/yy` → `dd/mm/yyyy`), la
+codificación (cp1252, no UTF-8), el nombre de los agregados (`BbMxH` → `MaxH`) y
+la columna de línea asiática (`BbAHh` → `AHh`); las cuotas de cierre **no existen
+en las temporadas antiguas**. `discover_schema()` inventaría lo que cada fichero
+contiene realmente y `report` lo publica, de modo que la deriva sea visible en
+lugar de convertirse en muestra perdida en silencio.
+
+Preguntas que habilita:
+
+| | Pregunta | Contraste |
+|---|---|---|
+| A1 | Sesgo favorito-longshot | ROI por decil de probabilidad |
+| A2 | **Asimetría entre casas** | Logit de acierto sobre la desviación frente a Pinnacle |
+| A3 | Valor de la línea de cierre | CLV por casa |
+| A4 | Desplazamiento apertura→cierre | Deriva del precio |
+| A5 | Evolución de la eficiencia | Margen y dispersión por temporada |
+
+**A2 resuelve el problema de identificación** del diseño original: la cuota de
+otra casa es un conjunto de información genuinamente independiente, cosa que la
+probabilidad neutralizada del propio libro nunca podía ser.
 
 ## Captura en vivo
 
@@ -77,6 +113,8 @@ src/veee/
   database.py      Esquema SQLite y matriz econométrica
   pipeline.py      Orquestación del ciclo diario (idempotente)
   capture.py       Captura continua: escalera de ventanas, cierre, salud
+  archive.py       Archivo histórico: descubrimiento de esquema y normalización
+  archive_analysis.py  Matriz econométrica y preguntas A1-A5
   settlement.py    Liquidación, hándicaps asiáticos, CLV
   econometrics.py  Contrastes de hipótesis, Logit, diagnósticos, potencia
   simulate.py      DGP sintético para validar el diseño

@@ -228,6 +228,10 @@ FORMULA_COMPLETA = "y_exito ~ ev_pct + trend_score + clv_pct + logit_p_mkt"
 # Especificacion literal del diseno, SIN control de precio. Se estima solo para
 # documentar el sesgo de variable omitida; NO debe usarse para inferencia.
 FORMULA_INGENUA = "y_exito ~ ev_pct + trend_score + clv_pct"
+# Especificacion de eficiencia para el archivo historico: condiciona sobre el
+# precio de la casa de referencia (Pinnacle) y contrasta si la discrepancia de
+# otra casa aporta poder predictivo. Bajo eficiencia semifuerte, no debe.
+FORMULA_ARCHIVO = "y_exito ~ logit_p_sharp + desv_pct"
 
 ADVERTENCIA_ESPECIFICACION = (
     "El Logit sin control del precio de mercado sufre SESGO DE VARIABLE OMITIDA. "
@@ -261,7 +265,8 @@ def fit_logit(d: pd.DataFrame, formula: str = FORMULA_COMPLETA,
     """
     d = d[d["y_exito"].notna()].copy()
     d["y_exito"] = d["y_exito"].astype(int)
-    cols = [c for c in ["ev_pct", "trend_score", "clv_pct", "logit_p_mkt", "log_cuota"]
+    cols = [c for c in ["ev_pct", "trend_score", "clv_pct", "logit_p_mkt",
+                        "log_cuota", "logit_p_sharp", "desv_pct", "drift_pct"]
             if c in formula]
     d = d.dropna(subset=cols + ["y_exito"])
     if d["y_exito"].nunique() < 2:
