@@ -1,0 +1,31 @@
+{
+  "filters": {"season": "2024"},
+  "resultSet": {"count": 4, "first": "2024-08-17", "last": "2024-08-19", "played": 3},
+  "competition": {"id": 2014, "name": "Primera Division", "code": "PD", "type": "LEAGUE"},
+  "matches": [
+    {"id": 497567, "utcDate": "2024-08-17T17:00:00Z", "status": "FINISHED", "matchday": 1,
+     "homeTeam": {"id": 81, "name": "FC Barcelona", "shortName": "Barça", "tla": "FCB"},
+     "awayTeam": {"id": 95, "name": "Valencia CF", "shortName": "Valencia", "tla": "VAL"},
+     "score": {"winner": "HOME_TEAM", "duration": "REGULAR",
+               "fullTime": {"home": 2, "away": 1}, "halfTime": {"home": 1, "away": 0}},
+     "odds": {"msg": "Activate Odds-Package in User-Panel to retrieve odds."}},
+    {"id": 497568, "utcDate": "2024-08-18T19:30:00Z", "status": "FINISHED", "matchday": 1,
+     "homeTeam": {"id": 86, "name": "Real Madrid CF", "shortName": "Real Madrid", "tla": "RMA"},
+     "awayTeam": {"id": 89, "name": "RCD Mallorca", "shortName": "Mallorca", "tla": "MAL"},
+     "score": {"winner": "DRAW", "duration": "REGULAR",
+               "fullTime": {"home": 1, "away": 1}, "halfTime": {"home": 0, "away": 1}},
+     "odds": {"msg": "Activate Odds-Package in User-Panel to retrieve odds."}},
+    {"id": 497569, "utcDate": "2024-08-18T15:00:00Z", "status": "FINISHED", "matchday": 1,
+     "homeTeam": {"id": 82, "name": "Getafe CF", "shortName": "Getafe", "tla": "GET"},
+     "awayTeam": {"id": 263, "name": "Deportivo Alavés", "shortName": "Alavés", "tla": "ALA"},
+     "score": {"winner": "AWAY_TEAM", "duration": "REGULAR",
+               "fullTime": {"home": 0, "away": 2}, "halfTime": {"home": 0, "away": 1}},
+     "odds": {"msg": "Activate Odds-Package in User-Panel to retrieve odds."}},
+    {"id": 497570, "utcDate": "2024-08-19T19:00:00Z", "status": "POSTPONED", "matchday": 1,
+     "homeTeam": {"id": 78, "name": "Club Atlético de Madrid", "shortName": "Atleti", "tla": "ATL"},
+     "awayTeam": {"id": 559, "name": "Sevilla FC", "shortName": "Sevilla", "tla": "SEV"},
+     "score": {"winner": null, "duration": "REGULAR",
+               "fullTime": {"home": null, "away": null}, "halfTime": {"home": null, "away": null}},
+     "odds": {"msg": "Activate Odds-Package in User-Panel to retrieve odds."}}
+  ]
+}

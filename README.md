@@ -24,6 +24,11 @@ python scripts/archive.py report        # VERIFICA el esquema antes de analizar
 python scripts/archive.py analyze       # preguntas A1-A5
 python scripts/archive.py report --fixtures   # sin red, sobre las dos épocas
 
+# CALENDARIO, RESULTADOS E IDs DE EQUIPO (football-data.org, plan gratuito)
+export FOOTBALL_DATA_ORG_TOKEN='su_clave'      # nunca en un fichero del repo
+python scripts/fdorg.py verify                 # ¿qué cubre realmente su plan?
+python scripts/fdorg.py crosswalk --competicion PD --div SP1 --temporada 2024
+
 # 0) ANTES de capturar en vivo: calibrar y validar
 python scripts/calibrate.py verify --fuente betplay   # asistente de calibración
 python scripts/preflight.py                           # GO / NO-GO
@@ -80,6 +85,27 @@ Preguntas que habilita:
 otra casa es un conjunto de información genuinamente independiente, cosa que la
 probabilidad neutralizada del propio libro nunca podía ser.
 
+## football-data.org (complemento, no sustituto)
+
+**No sirve cuotas** en el plan gratuito: no reemplaza a Football-Data.co.uk. Lo
+que aporta es igualmente necesario:
+
+- **IDs numéricos y `tla` estables por equipo** → el ancla del emparejamiento
+  entre fuentes, que era el fallo silencioso más peligroso del diseño
+- **Hora exacta del pitido en UTC** → sin ella la escalera de captura no puede
+  anclarse y no hay línea de cierre, luego no hay CLV
+- **Resultados** para liquidar
+
+El token se lee **solo** de `FOOTBALL_DATA_ORG_TOKEN` y nunca aparece completo en
+registros ni ficheros: un token filtrado en el historial de git queda expuesto de
+forma permanente.
+
+`crosswalk` empareja los nombres en cascada (exacto → normalizado → subconjunto
+de tokens único → difuso). **Todo lo dudoso se marca para revisión humana.**
+Ejemplo real: `RCD Espanyol de Barcelona` coincide por subconjunto tanto con
+`Barcelona` como con `Espanol`, y el sistema se niega a elegir — confundir dos
+clubes rivales de la misma ciudad no produce un error, produce datos falsos.
+
 ## Captura en vivo
 
 Escalera de ventanas anclada al pitido inicial, cada hito capturado una sola vez:
@@ -115,6 +141,8 @@ src/veee/
   capture.py       Captura continua: escalera de ventanas, cierre, salud
   archive.py       Archivo histórico: descubrimiento de esquema y normalización
   archive_analysis.py  Matriz econométrica y preguntas A1-A5
+  fdorg.py         football-data.org: calendario, resultados, IDs estables
+  crosswalk.py     Emparejamiento de equipos y partidos entre fuentes
   settlement.py    Liquidación, hándicaps asiáticos, CLV
   econometrics.py  Contrastes de hipótesis, Logit, diagnósticos, potencia
   simulate.py      DGP sintético para validar el diseño
