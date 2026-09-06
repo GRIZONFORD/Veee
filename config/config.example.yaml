@@ -75,3 +75,16 @@ linemate:
 fixtures:
   betplay: "data/fixtures/betplay_sample.json"
   linemate: "data/fixtures/linemate_sample.json"
+
+# ------------------------------------------------ captura continua (cron) ----
+captura:
+  # Escalera de ventanas, en horas hasta el pitido inicial. Densa cerca del
+  # inicio: ahi converge la linea y se juega la calidad del CLV.
+  ventanas_h: [72, 48, 24, 12, 6, 3, 1, 0.5, 0.1667, 0.05]
+  # Ventana de COLOCACION pre-registrada (desde, hasta) en horas al inicio.
+  # Fijarla es un requisito del protocolo: si se apostara en cualquier instante,
+  # el CLV mediria la eleccion del momento y no la calidad de la senal.
+  bet_window: [24, 6]
+  horizonte_h: 96          # cuanto futuro se vigila
+  salud_umbral: 0.5        # alerta si el volumen cae por debajo de esta fraccion
+  salud_min_muestras: 5    # historial minimo para calcular la mediana movil

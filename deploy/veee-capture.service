@@ -1,0 +1,19 @@
+[Unit]
+Description=Veee — tick de captura de cuotas y tendencias
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=veee
+WorkingDirectory=/opt/veee
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=/opt/veee/.venv/bin/python /opt/veee/scripts/capture.py --json
+# El codigo 2 (alerta de salud) no debe marcar la unidad como fallida; el 3 si.
+SuccessExitStatus=0 2
+StandardOutput=append:/opt/veee/logs/capture.log
+StandardError=append:/opt/veee/logs/capture.err
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

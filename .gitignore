@@ -21,3 +21,6 @@ venv/
 
 # Configuracion local (usar config.example.yaml como plantilla)
 config/config.yaml
+
+# Registros de ejecucion
+logs/

@@ -122,8 +122,23 @@ class PoliteSession:
         return path
 
     @staticmethod
-    def soup(html: str) -> BeautifulSoup:
-        return BeautifulSoup(html, "lxml")
+    def parser_disponible() -> str:
+        """Elige el mejor analizador presente, con repliegue a la biblioteca estandar.
+
+        `lxml` es mas rapido y tolerante con HTML malformado, pero es una
+        dependencia compilada que puede faltar en el servidor de recoleccion. Sin
+        repliegue, el capturador moriria en el primer tick.
+        """
+        try:
+            import lxml  # noqa: F401
+            return "lxml"
+        except ImportError:
+            log.warning("lxml no disponible; se usa html.parser (mas lento).")
+            return "html.parser"
+
+    @classmethod
+    def soup(cls, html: str) -> BeautifulSoup:
+        return BeautifulSoup(html, cls.parser_disponible())
 
 
 class BaseScraper(ABC):

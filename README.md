@@ -18,7 +18,15 @@ cp config/config.example.yaml config/config.yaml   # y calibrar los selectores
 ## Uso
 
 ```bash
-# 1) Ciclo diario: extrae, evalúa +EV y registra apuestas EX ANTE
+# 0) ANTES de capturar en vivo: calibrar y validar
+python scripts/calibrate.py verify --fuente betplay   # asistente de calibración
+python scripts/preflight.py                           # GO / NO-GO
+
+# 1a) Captura continua (cron cada 5 min): escalera de ventanas + línea de cierre
+python scripts/capture.py
+python scripts/capture.py --dry-run --ahora 2026-09-12T13:00:00Z
+
+# 1b) Ciclo diario simple (sin línea de cierre)
 python scripts/run_daily.py --fecha 2026-09-12
 python scripts/run_daily.py --dry-run              # offline, con fixtures
 
@@ -33,8 +41,31 @@ python scripts/run_analysis.py --simular h1_ruido  # sobre datos sintéticos
 python scripts/power_study.py --rep 200
 
 # Pruebas
-python -m pytest tests/ -q                          # 69 pruebas
+python -m pytest tests/ -q                          # 83 pruebas
 ```
+
+## Captura en vivo
+
+Escalera de ventanas anclada al pitido inicial, cada hito capturado una sola vez:
+
+```
+T-72h  T-48h  T-24h  T-12h  T-6h  T-3h  T-1h  T-30m  T-10m  T-3m
+  └──── apertura ────┴─── convergencia ───┴──── CIERRE ────┘
+         [ ventana de colocación: T-24h → T-6h ]
+```
+
+**Capturar no es apostar.** Se registran precios en toda la escalera, pero las
+apuestas solo dentro de la ventana pre-registrada: de otro modo el CLV mediría en
+parte la elección del momento y no la calidad de la señal.
+
+La **línea de cierre** (último precio antes del pitido) es imprescindible: sin
+ella no hay CLV, y el CLV es el contraste de mayor potencia del estudio. Un ciclo
+meramente diario nunca la obtiene.
+
+Despliegue con cron, systemd o GitHub Actions: ver **`docs/DESPLIEGUE.md`**.
+`scripts/preflight.py` impide activar la captura con la configuración sin
+calibrar, y verifica que las claves de partido de ambas fuentes crucen — el fallo
+silencioso más probable en producción.
 
 ## Estructura
 
@@ -45,10 +76,12 @@ src/veee/
   scrapers/        BetPlay (precios) y Linemate (tendencias); cliente HTTP responsable
   database.py      Esquema SQLite y matriz econométrica
   pipeline.py      Orquestación del ciclo diario (idempotente)
+  capture.py       Captura continua: escalera de ventanas, cierre, salud
   settlement.py    Liquidación, hándicaps asiáticos, CLV
   econometrics.py  Contrastes de hipótesis, Logit, diagnósticos, potencia
   simulate.py      DGP sintético para validar el diseño
-docs/              PREREGISTRO.md · METODOLOGIA.md
+docs/              PREREGISTRO.md · METODOLOGIA.md · DESPLIEGUE.md
+deploy/            Unidades systemd y crontab de ejemplo
 paper/             ESQUEMA_PAPER.md
 ```
 

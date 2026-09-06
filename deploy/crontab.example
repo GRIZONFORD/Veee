@@ -1,0 +1,16 @@
+# Captura continua de Veee. Instalar con: crontab deploy/crontab.example
+# La zona horaria importa: LaLiga se juega en horario peninsular y BetPlay
+# publica en hora de Colombia. Todo el codigo trabaja en UTC internamente.
+CRON_TZ=UTC
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+VEEE=/opt/veee
+
+# Tick de captura cada 5 minutos: cubre la escalera de ventanas y la linea de cierre.
+*/5 * * * * cd $VEEE && ./.venv/bin/python scripts/capture.py >> logs/capture.log 2>&1
+
+# Liquidacion diaria a las 06:00 UTC (madrugada en Colombia, con los partidos ya jugados).
+0 6 * * * cd $VEEE && ./.venv/bin/python scripts/settle.py --resultados data/resultados_$(date -u +\%F).json >> logs/settle.log 2>&1
+
+# Informe econometrico semanal, los lunes a las 07:00 UTC.
+0 7 * * 1 cd $VEEE && ./.venv/bin/python scripts/run_analysis.py >> logs/analysis.log 2>&1
