@@ -81,7 +81,7 @@ src/veee/
   econometrics.py  Contrastes de hipótesis, Logit, diagnósticos, potencia
   simulate.py      DGP sintético para validar el diseño
 docs/              PREREGISTRO.md · METODOLOGIA.md · DESPLIEGUE.md
-                   PLAN_MERCADO_GLOBAL.md (extensión Polymarket/multi-casa)
+                   PLAN_MERCADO_GLOBAL.md (plan de acción a coste cero)
 deploy/            Unidades systemd y crontab de ejemplo
 paper/             ESQUEMA_PAPER.md
 ```
