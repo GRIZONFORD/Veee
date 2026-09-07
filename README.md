@@ -148,6 +148,7 @@ src/veee/
   simulate.py      DGP sintético para validar el diseño
 docs/              PREREGISTRO.md · METODOLOGIA.md · DESPLIEGUE.md
                    PLAN_MERCADO_GLOBAL.md (plan de acción a coste cero)
+                   PLAN_ALINEACIONES.md (p_est desde alineación + fuerza de equipo)
 deploy/            Unidades systemd y crontab de ejemplo
 paper/             ESQUEMA_PAPER.md
 ```
