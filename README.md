@@ -24,6 +24,13 @@ python scripts/archive.py report        # VERIFICA el esquema antes de analizar
 python scripts/archive.py analyze       # preguntas A1-A5
 python scripts/archive.py report --fixtures   # sin red, sobre las dos épocas
 
+# FUERZA DE EQUIPO HISTORICA (ClubElo, gratis, sin clave)
+python scripts/clubelo.py probar                              # conectividad, falla en segundos
+python scripts/clubelo.py crosswalk --ligas SP1 --desde 2015 --hasta 2024
+python scripts/clubelo.py fetch --ligas SP1 --desde 2015 --hasta 2024
+python scripts/clubelo.py enrich --ligas SP1 --desde 2015 --hasta 2024
+python scripts/clubelo.py crosswalk --fixtures                # sin red, con los fixtures
+
 # CALENDARIO, RESULTADOS E IDs DE EQUIPO (football-data.org, plan gratuito)
 export FOOTBALL_DATA_ORG_TOKEN='su_clave'      # nunca en un fichero del repo
 python scripts/fdorg.py verify                 # ¿qué cubre realmente su plan?
@@ -52,7 +59,7 @@ python scripts/run_analysis.py --simular h1_ruido  # sobre datos sintéticos
 python scripts/power_study.py --rep 200
 
 # Pruebas
-python -m pytest tests/ -q                          # 114 pruebas
+python -m pytest tests/ -q                          # 150 pruebas
 ```
 
 ## Archivo histórico (Football-Data.co.uk)
@@ -84,6 +91,34 @@ Preguntas que habilita:
 **A2 resuelve el problema de identificación** del diseño original: la cuota de
 otra casa es un conjunto de información genuinamente independiente, cosa que la
 probabilidad neutralizada del propio libro nunca podía ser.
+
+## ClubElo: fuerza de equipo histórica y p_elo
+
+De las fuentes investigadas en `docs/PLAN_ALINEACIONES.md`, ClubElo es la única
+con API HTTP simple (sin navegador), histórica desde 1939 y consultable **a
+fecha exacta** — lo que permite enriquecer retroactivamente toda la Vía A sin
+recolectar nada en vivo.
+
+`src/veee/clubelo.py` implementa:
+
+- **Búsqueda as-of** (`elo_as_of`): el Elo vigente en la fecha exacta del
+  partido, nunca "el de hoy". Una fecha sin cobertura es `NaN`, jamás una
+  aproximación silenciosa — es la misma disciplina anti-fuga que motivó
+  descartar `FBref.read_lineup()` en el plan de alineaciones.
+- **Crosswalk de nombres** (`mapa_desde_snapshot`): ClubElo usa su propia
+  grafía (`Atletico Madrid`, `Malaga`, sin tildes), distinta de
+  Football-Data.co.uk. Reutiliza `crosswalk.emparejar_equipos`: lo dudoso se
+  marca para revisión, nunca se adivina.
+- **`p_elo`** (`ajustar_modelo_elo`): logit ordenado `resultado ~ elo_diff`
+  (away < draw < home). Con un solo regresor, la ventaja de jugar en casa
+  queda absorbida por los puntos de corte estimados — no hace falta una
+  constante de ventaja de local a mano. Validado contra un proceso generador
+  con parámetros conocidos (recupera β y los dos puntos de corte dentro del
+  error de muestreo), porque los fixtures del repo (n=7) no alcanzan para
+  validar la maquinaria de otro modo.
+- **`comparar_con_mercado`**: Brier de `p_elo` frente al Brier del precio ya
+  neutralizado — la pregunta que importa no es si Elo "funciona" en
+  abstracto, sino si aporta algo que el precio no tenga ya incorporado.
 
 ## football-data.org (complemento, no sustituto)
 
@@ -142,6 +177,7 @@ src/veee/
   archive.py       Archivo histórico: descubrimiento de esquema y normalización
   archive_analysis.py  Matriz econométrica y preguntas A1-A5
   fdorg.py         football-data.org: calendario, resultados, IDs estables
+  clubelo.py       ClubElo: Elo a fecha exacta, crosswalk, p_elo (logit ordenado)
   crosswalk.py     Emparejamiento de equipos y partidos entre fuentes
   settlement.py    Liquidación, hándicaps asiáticos, CLV
   econometrics.py  Contrastes de hipótesis, Logit, diagnósticos, potencia

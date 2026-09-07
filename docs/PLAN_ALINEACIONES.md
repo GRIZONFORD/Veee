@@ -182,7 +182,7 @@ partido"*. Dos formas concretas en que esto se colaría sin avisar:
 | Fase | Contenido | Depende de |
 |---|---|---|
 | **0** | Verificar desde una máquina con red: alcance real de ClubElo, cobertura de StatsBomb open-data en LaLiga actual, acceso al CSV de withqwerty/availability-data. Decidir la pregunta legal de §2 | Nada — barata y en paralelo |
-| **1** | Enriquecer retroactivamente la Vía A con Elo a fecha de cada partido | Fase 0 |
+| **1** | Enriquecer retroactivamente la Vía A con Elo a fecha de cada partido | **Código listo** (`clubelo.py` + `scripts/clubelo.py`), validado por fixtures y contra un proceso generador conocido. Pendiente de ejecutar con red real: `api.clubelo.com` bloqueado en el entorno de desarrollo |
 | **2** | Features rolling desde FBref/Understat (requiere resolver la dependencia Selenium) | Fase 0 |
 | **3** | Disponibilidad/lesiones desde withqwerty/availability-data | Fase 0 |
 | **4** | Modelo de fuerza de alineación anunciada — el más incierto, depende de §2 | Fase 0 + decisión legal |

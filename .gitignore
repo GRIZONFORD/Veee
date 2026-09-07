@@ -5,6 +5,9 @@
 *.sqlite3
 data/raw/
 data/processed/
+data/archive/
+data/clubelo/
+data/fdorg/
 data/*.csv
 !data/fixtures/*.json
 outputs/
